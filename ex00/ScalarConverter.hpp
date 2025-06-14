@@ -16,6 +16,7 @@ public:
     const std::string &getInput(void) const { return _input; }
     void printValues() const;
 
+
     void convert(const std::string &input);
 
 private:
@@ -33,6 +34,11 @@ private:
     void convertToFloat(void);
     void convertToDouble(const std::string &input);
 
+    char getCharValue(void) const { return _charValue; }
+    int getIntValue(void) const { return _intValue; }
+    float getFloatValue(void) const { return _floatValue; }
+    double getDoubleValue(void) const { return _doubleValue; }
+
     class ConversionError : public std::exception
     {
         public:
@@ -42,5 +48,7 @@ private:
             }
     };
 };
+
+bool checkInput(const std::string &input);
 
 #endif

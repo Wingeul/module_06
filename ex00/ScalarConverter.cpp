@@ -9,7 +9,6 @@ ScalarConverter::ScalarConverter(const std::string input) : _input(input)
 {
     std::cout << "ScalarConverter parameterized constructor called with input: " << input << std::endl;
     convert(input);
-    this->printValues();
 }
 
 ScalarConverter::ScalarConverter(const ScalarConverter &other)
@@ -37,8 +36,49 @@ ScalarConverter &ScalarConverter::operator=(const ScalarConverter &other)
     return *this;
 }
 
+bool checkInput(const std::string &input)
+{
+    if (input.compare("nan") == 0 || input.compare("inf") == 0 || input.compare("-inf") == 0)
+    {
+        std::cout << "Input is a special floating-point value: " << input << std::endl;
+        return false;
+    }
+    if (input.find_last_of("f") != std::string::npos && input.find_last_of("f") != input.length() - 1)
+    {
+        std::cout << "Invalid input" << std::endl;
+        return false;
+    }
+    if (input.find_first_of(".") != std::string::npos)
+    {
+        unsigned long dotposition = input.find_first_of(".");
+        if (dotposition == 0 || dotposition == input.length() - 1)
+        {
+            std::cout << "Invalid Decimal" << std::endl;
+            return false;
+        }
+        if (isdigit(input[dotposition - 1]) == false || isdigit(input[dotposition + 1]) == false)
+        {
+            std::cout << "Invalid Decimal" << std::endl;
+            return false;
+        }
+    }
+    if (input.find_last_of("+-") != std::string::npos && input.find_last_of("+-") != 0)
+    {
+        std::cout << "Invalid input" << std::endl;
+        return false;
+    }
+    if (input.length() > 1 && input.find_first_not_of("0123456789.f") != std::string::npos)
+    {
+        std::cout << "Invalid input" << std::endl;
+        return false;
+    }
+    return true;
+}
+
 void ScalarConverter::convert(const std::string &input)
 {
+    if (!checkInput(input))
+        return;
     try
     {
         convertToDouble(input);
@@ -48,17 +88,28 @@ void ScalarConverter::convert(const std::string &input)
     }
     catch (const ConversionError &e)
     {
-        std::cerr << e.what() << std::endl;
-        return ;
+        throw ConversionError();
     }
+    this->printValues();
 }
 
 void ScalarConverter::printValues() const
 {
-    std::cout << "Char: " << _charValue << std::endl;
+    if (!isprint(_charValue))
+        std::cout << "Char: Non displayable" << std::endl;
+    else
+        std::cout << "Char: " << _charValue << std::endl;
     std::cout << "Int: " << _intValue << std::endl;
-    std::cout << "Float: " << _floatValue << std::endl;
-    std::cout << "Double: " << _doubleValue << std::endl;
+    std::cout << "Float: " << _floatValue;
+    if (_floatValue - _intValue == 0)
+        std::cout << ".0f" << std::endl;
+    else
+        std::cout << "f" << std::endl;
+    std::cout << "Double: " << _doubleValue;
+    if (_floatValue - _intValue == 0)
+        std::cout << ".0" << std::endl;
+    else
+        std::cout << std::endl;
 }
 
 void ScalarConverter::convertToChar(const std::string &input)
@@ -66,14 +117,13 @@ void ScalarConverter::convertToChar(const std::string &input)
     if (input.length() == 1 && !std::isdigit(input[0]))
     {
         _charValue = input[0];
+        _intValue = static_cast<int>(_charValue);
+        _floatValue = static_cast<float>(_charValue);
+        _doubleValue = static_cast<double>(_charValue);
         return;
     }
-    if (_intValue < 0 || _intValue > 127)
-        throw ConversionError();
-    _charValue = static_cast<char>(_intValue);
-
-    if (!std::isprint(_charValue))
-        throw ConversionError();
+    else
+        _charValue = static_cast<unsigned char>(_intValue);
 }
 
 
@@ -93,6 +143,7 @@ void ScalarConverter::convertToFloat(void)
 {
     try
     {
+        std::cout << _doubleValue << std::endl;
         _floatValue = static_cast<float>(_doubleValue);
     }
     catch (const std::exception &e)
@@ -105,13 +156,7 @@ void ScalarConverter::convertToDouble(const std::string &input)
 {
     try
     {
-        const char* str = input.c_str();
-        char* endPtr = NULL;
-        _doubleValue = std::strtod(str, &endPtr);
-        if (endPtr == str || *endPtr != '\0')
-        {
-            throw ConversionError();
-        }
+        _doubleValue = atof(input.c_str());
     }
     catch (const std::exception &e)
     {
