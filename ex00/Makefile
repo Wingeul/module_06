@@ -14,7 +14,7 @@
 SRC = main.cpp ScalarConverter.cpp ScalarConverter.hpp
 
 # Nom du fichier exécutable
-OUT = a.out
+OUT = converter
 
 # Flags de compilation
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98

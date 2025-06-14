@@ -3,8 +3,12 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <exception>
+#include <climits>
 #include <limits>
 
+#define int_min std::numeric_limits<int>::min()
+#define int_max std::numeric_limits<int>::max()
 
 class ScalarConverter {
 public:
@@ -24,10 +28,13 @@ private:
     ScalarConverter();
 
     const std::string _input;
+    std::string _specialValues;
     char _charValue;
     int _intValue;
     float _floatValue;
     double _doubleValue;
+
+    bool checkInput(const std::string &input);
 
     void convertToChar(const std::string &input);
     void convertToInt(void);
@@ -39,6 +46,11 @@ private:
     float getFloatValue(void) const { return _floatValue; }
     double getDoubleValue(void) const { return _doubleValue; }
 
+    void printChar(void) const;
+    void printInt(void) const;
+    void printFloat(void) const;
+    void printDouble(void) const;
+
     class ConversionError : public std::exception
     {
         public:
@@ -48,7 +60,5 @@ private:
             }
     };
 };
-
-bool checkInput(const std::string &input);
 
 #endif

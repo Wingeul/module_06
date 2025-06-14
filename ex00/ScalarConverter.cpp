@@ -2,32 +2,29 @@
 
 ScalarConverter::ScalarConverter()
 {
-    std::cout << "ScalarConverter default constructor called" << std::endl;
 }
 
 ScalarConverter::ScalarConverter(const std::string input) : _input(input)
 {
-    std::cout << "ScalarConverter parameterized constructor called with input: " << input << std::endl;
+    _specialValues = "";
     convert(input);
 }
 
 ScalarConverter::ScalarConverter(const ScalarConverter &other)
 {
-    std::cout << "ScalarConverter copy constructor called" << std::endl;
     *this = other;
     this->printValues();
 }
 
 ScalarConverter::~ScalarConverter()
 {
-    std::cout << "ScalarConverter destructor called" << std::endl;
 }
 
 ScalarConverter &ScalarConverter::operator=(const ScalarConverter &other)
 {
-    std::cout << "ScalarConverter assignment operator called" << std::endl;
     if (this != &other)
     {
+        _specialValues = other._specialValues;
         _charValue = other._charValue;
         _intValue = other._intValue;
         _floatValue = other._floatValue;
@@ -36,11 +33,13 @@ ScalarConverter &ScalarConverter::operator=(const ScalarConverter &other)
     return *this;
 }
 
-bool checkInput(const std::string &input)
+bool ScalarConverter::checkInput(const std::string &input)
 {
-    if (input.compare("nan") == 0 || input.compare("inf") == 0 || input.compare("-inf") == 0)
+    if (input.compare("nan") == 0 || input.compare("+inf") == 0 || input.compare("-inf") == 0
+        || input.compare("+inff") == 0 || input.compare("-inff") == 0)
     {
-        std::cout << "Input is a special floating-point value: " << input << std::endl;
+        _specialValues = input;
+        this->printValues();
         return false;
     }
     if (input.find_last_of("f") != std::string::npos && input.find_last_of("f") != input.length() - 1)
@@ -95,21 +94,10 @@ void ScalarConverter::convert(const std::string &input)
 
 void ScalarConverter::printValues() const
 {
-    if (!isprint(_charValue))
-        std::cout << "Char: Non displayable" << std::endl;
-    else
-        std::cout << "Char: " << _charValue << std::endl;
-    std::cout << "Int: " << _intValue << std::endl;
-    std::cout << "Float: " << _floatValue;
-    if (_floatValue - _intValue == 0)
-        std::cout << ".0f" << std::endl;
-    else
-        std::cout << "f" << std::endl;
-    std::cout << "Double: " << _doubleValue;
-    if (_floatValue - _intValue == 0)
-        std::cout << ".0" << std::endl;
-    else
-        std::cout << std::endl;
+    printChar();
+    printInt();
+    printFloat();
+    printDouble();
 }
 
 void ScalarConverter::convertToChar(const std::string &input)
@@ -143,7 +131,6 @@ void ScalarConverter::convertToFloat(void)
 {
     try
     {
-        std::cout << _doubleValue << std::endl;
         _floatValue = static_cast<float>(_doubleValue);
     }
     catch (const std::exception &e)
@@ -162,4 +149,56 @@ void ScalarConverter::convertToDouble(const std::string &input)
     {
         throw ConversionError();
     }
+}
+
+void ScalarConverter::printChar(void) const
+{
+    std::cout << "Char: ";
+    if (!isprint(_charValue))
+        std::cout << "Non displayable" << std::endl;
+    else if (_specialValues != "")
+        std::cout << "impossible" << std::endl;
+    else
+        std::cout << _charValue << std::endl;
+}
+
+void ScalarConverter::printInt(void) const
+{
+    std::cout << "Int: ";
+    if (_doubleValue <= int_min || _doubleValue >= int_max)
+        std::cout << "out of bounds" << std::endl;
+    else if (_specialValues != "")
+        std::cout << "impossible" << std::endl;
+    else
+        std::cout << _intValue << std::endl;
+}
+
+void ScalarConverter::printFloat(void) const
+{
+    std::cout << "Float: ";
+    if (_specialValues.compare("nan") == 0)
+        std::cout << "nanf" << std::endl;
+    else if (_specialValues.compare("+inf") == 0 || _specialValues.compare("+inff") == 0)
+        std::cout << "+inff" << std::endl;
+    else if (_specialValues.compare("-inf") == 0 || _specialValues.compare("-inff") == 0)
+        std::cout << "-inff" << std::endl;
+    else if (_floatValue - _intValue == 0)
+        std::cout << _floatValue << ".0f" << std::endl;
+    else
+        std::cout << _floatValue << "f" << std::endl;
+}
+
+void ScalarConverter::printDouble(void) const
+{
+    std::cout << "Double: ";
+    if (_specialValues.compare("nan") == 0)
+        std::cout << "nan" << std::endl;
+    else if (_specialValues.compare("+inf") == 0 || _specialValues.compare("+inff") == 0)
+        std::cout << "+inf" << std::endl;
+    else if (_specialValues.compare("-inf") == 0 || _specialValues.compare("-inff") == 0)
+        std::cout << "-inf" << std::endl;
+    else if (_floatValue - _intValue == 0)
+        std::cout << _doubleValue << ".0" << std::endl;
+    else
+        std::cout << _doubleValue << std::endl;
 }
